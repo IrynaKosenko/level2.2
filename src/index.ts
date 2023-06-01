@@ -125,25 +125,21 @@ type aboutName = {
 // - воспользуйтесь чисто промисами, без async/await,
 //   без Promise.all .... это может быть сложно   ---------------------
 
-const nm = () => {
-    return new Promise((resolve, reject)=> {
-        const res = fetch(url);
-        // const data = res.json() 
+// //First way :
 
-        resolve(fetch(url));
-    })
-}
-// function getName3() {
-//     return new Promise((resolve, reject)=> {
+// function getName3(): Promise<aboutName> {
+//     return new Promise((resolve, reject) => {
 //         const res = fetch(url);
-//         // const data = res.json() 
-
-//         resolve(fetch(url));
+//         let data = res.then(response => { return response.json() as Promise<aboutName> })
+//         resolve(data);
 //     })
 // }
-nm.then(data => data.json() as Promise<aboutName>);
+// for (let i = 0; i < 3; i++) {
+//     getName3().then(resp => { console.log(resp.name) })
+// }
 
-// //First way : 
+// // Second way
+
 // let data = [fetch(url), fetch(url), fetch(url)];
 // for (let i = 0; i < 3; i++) {
 //     data[i].then(d => {
@@ -153,94 +149,108 @@ nm.then(data => data.json() as Promise<aboutName>);
 //     .then(el => console.log(el.first_name));
 // }
 
-// // // Second way
-let arrPromises = [
-    Promise.resolve(fetch(url)),
-    Promise.resolve(fetch(url)),
-    Promise.resolve(fetch(url)),
-];
-for (let i = 0; i < 3; i++) {
-    arrPromises[i]
-    .then(data => data.json() as Promise<aboutName>)
-        .then(el => console.log(el.name));
-}
+// // Third way
+
+// let arrPromises = [
+//     Promise.resolve(fetch(url)),
+//     Promise.resolve(fetch(url)),
+//     Promise.resolve(fetch(url)),
+// ];
+// for (let i = 0; i < 3; i++) {
+//     arrPromises[i]
+//         .then(data => data.json() as Promise<aboutName>)
+//         .then(el => console.log(el.name));
+// }
 
 
 //4. Напишите функцию , которая должна за минимальное количество запросов получить юзера женщину: 
 const url1 = 'https://random-data-api.com/api/users/random_user';
 
 //без async/await
-// type User = {
-//     id: number,
-//     uid: string,
-//     password: string,
-//     first_name: string,
-//     last_name: string,
-//     username: string,
-//     email: string,
-//     avatar: string,
-//     gender: string,
-//     phone_number: string,
-//     social_insurance_number: string,
-//     date_of_birth: string,
-//     employment: { title: string, key_skill: string },
-//     address: {
-//         city: string,
-//         street_name: string,
-//         street_address: string,
-//         zip_code: string,
-//         state: string,
-//         country: string,
-//         coordinates: { lat: number, lng: number }
-//     },
-//     credit_card: { cc_number: string },
-//     subscription: {
-//         plan: string,
-//         status: string,
-//         payment_method: string,
-//         term: string
-//     }
-// }
+type User = {
+    id: number,
+    uid: string,
+    password: string,
+    first_name: string,
+    last_name: string,
+    username: string,
+    email: string,
+    avatar: string,
+    gender: string,
+    phone_number: string,
+    social_insurance_number: string,
+    date_of_birth: string,
+    employment: { title: string, key_skill: string },
+    address: {
+        city: string,
+        street_name: string,
+        street_address: string,
+        zip_code: string,
+        state: string,
+        country: string,
+        coordinates: { lat: number, lng: number }
+    },
+    credit_card: { cc_number: string },
+    subscription: {
+        plan: string,
+        status: string,
+        payment_method: string,
+        term: string
+    }
+}
 
-// function getUserWoman() {
-//     return fetch(url1)
-//         .then((res) => res.json() as Promise<User>)
-//         .then(data => {
-//             if (data.gender == 'Female') {
-//                 let userWoman = data;
-//                 return userWoman;
-//             }
-//         })
-// }
-// const b = () => {
-//     getUserWoman().then(user => {
-//         if (user == undefined) {
-//             return;
-//         } else {
-//             //console.log(user.first_name + ' ' + user.last_name + ' - ' + user.gender);
-//             //return user;
-//         }
-//     });
-// };
-// for (let i = 0; i < 10; i++) {
-//     b();
-// }
+function getUserWoman() {
+    return fetch(url1)
+}
+let counter = 1;
+let nameWoman = '';
+
+function nameFunc() {
+    getUserWoman().then((res) => res.json() as Promise<User>).then(data => {
+        console.log('Number: ' + counter);
+        counter++;
+        if (data.gender == 'Female') {
+            nameWoman = data.first_name + ' - ' + data.gender;
+            console.log(nameWoman);
+            return nameWoman;
+        } else {
+            return nameFunc();
+        }
+        
+    });
+}
+nameFunc();
 
 // с async/await
 
-// const nameWoman = async () => {
-//     const n = await getUserWoman();
-//     console.log(n);
+// async function getUserWoman() {
+//     return fetch(url1)
+//         .then((res) => res.json() as Promise<User>);
 // }
+// let counter = 1;
+// let nameWoman = '';
 
+// (async () => {
+//         while(true){
+//         const data = await getUserWoman();
+//         console.log('Number: ' + counter);
+//         if (data.gender == 'Female') {
+//             nameWoman = data.first_name + ' - ' + data.gender;
+//             console.log(nameWoman);
+//             return nameWoman;
+//         }
+//         counter++;
+//     }
+// }
+// )();
 
-// 5. Есть функция №1, которая принимает коллбек, который будет вызван 
+// 5. Есть функция №1, которая принимает коллбек, который будет вызван
 //с параметром == ваш текущий айпи. Создайте функцию №2,
 // которую можно евейтить, которая будет пользоваться функцией №1
-import express from 'express';
-const app = express();
-const PORT = 3000;
-import ip from 'ip';
+// import express from 'express';
+// const app = express();
+// const PORT = 3000;
+// import ip from 'ip';
 
 // function myFunction1(myCallBack: (myIP: string) => string): string {
 //     app.get('/', (req, res) => {
